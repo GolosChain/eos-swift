@@ -18,6 +18,9 @@ public extension ChainTransaction {
                     blockIdDetails: BlockIdDetails(blockId: info.body!.head_block_id),
                     actions: actions)
 
+                // JSON
+                print(transactionAbi.convertToJSON())
+
                 let signedTransactionAbi = SignedTransactionAbi(
                     chainId: ChainIdWriterValue(chainId: info.body!.chain_id),
                     transaction: transactionAbi,
@@ -26,6 +29,16 @@ public extension ChainTransaction {
                 let signature = PrivateKeySigning().sign(
                     digest: signedTransactionAbi.toData(),
                     eosPrivateKey: authorizingPrivateKey)
+
+                // JSON
+//                let rrr = PushTransaction(
+//                    signatures: [signature],
+//                    compression: "none",
+//                    packed_context_free_data: "",
+//                    packed_trx: transactionAbi.toHex()
+//                )
+//
+//                print(rrr.convertToJSON())
 
                 return self.chainApi().pushTransaction(body: PushTransaction(
                     signatures: [signature],

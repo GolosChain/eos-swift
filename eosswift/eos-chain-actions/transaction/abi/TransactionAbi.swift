@@ -22,4 +22,11 @@ public struct TransactionAbi : Encodable {
         self.actions = actions
         self.transaction_extensions = transaction_extensions
     }
+    
+    func convertToJSON() -> String {
+        let jsonData = try! JSONEncoder().encode(self)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        
+        return jsonString
+    }
 }
