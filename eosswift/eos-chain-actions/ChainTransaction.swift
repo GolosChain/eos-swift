@@ -7,15 +7,19 @@ public protocol ChainTransaction {
 
 public extension ChainTransaction {
     public func push(
+        expirationDate: Date,
         actions: [ActionAbi],
-        transactionContext: TransactionContext
+        authorizingPrivateKey: EOSPrivateKey
     ) -> Single<ChainResponse<TransactionCommitted>> {
         return chainApi().getInfo().flatMap { info in
             if (info.success) {
                 let transactionAbi = self.createTransactionAbi(
-                    expirationDate: transactionContext.expirationDate,
+                    expirationDate: expirationDate,
                     blockIdDetails: BlockIdDetails(blockId: info.body!.head_block_id),
                     actions: actions)
+
+                // JSON
+                print(transactionAbi.convertToJSON())
 
                 let signedTransactionAbi = SignedTransactionAbi(
                     chainId: ChainIdWriterValue(chainId: info.body!.chain_id),
@@ -23,14 +27,24 @@ public extension ChainTransaction {
                     context_free_data: HexCollectionWriterValue(value: []))
 
                 let signature = PrivateKeySigning().sign(
-                    digest: signedTransactionAbi.toData(transactionContext.abiEncoder()),
-                    eosPrivateKey: transactionContext.authorizingPrivateKey)
+                    digest: signedTransactionAbi.toData(),
+                    eosPrivateKey: authorizingPrivateKey)
+
+                // JSON
+//                let rrr = PushTransaction(
+//                    signatures: [signature],
+//                    compression: "none",
+//                    packed_context_free_data: "",
+//                    packed_trx: transactionAbi.toHex()
+//                )
+//
+//                print(rrr.convertToJSON())
 
                 return self.chainApi().pushTransaction(body: PushTransaction(
                     signatures: [signature],
                     compression: "none",
                     packed_context_free_data: "",
-                    packed_trx: transactionAbi.toHex(transactionContext.abiEncoder())
+                    packed_trx: transactionAbi.toHex()
                 )).map { response in
                     ChainResponse<TransactionCommitted>(
                         success: response.success,
